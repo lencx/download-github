@@ -1,0 +1,45 @@
+{
+  "name": "dgh",
+  "version": "0.0.1",
+  "description": "Download directory from a GitHub repo",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "author": "lencx <cxin1314@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dg": "esno src/index.ts",
+    "dev": "npm run build -- --watch",
+    "build": "tsup src/index.ts --dts --minify --format cjs,esm",
+    "prepublishOnly": "npm run build",
+    "release": "npx bumpp --push --tag --commit && npm publish"
+  },
+  "files": [
+    "bin",
+    "dist"
+  ],
+  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lencx/download-github"
+  },
+  "bugs": {
+    "url": "https://github.com/lencx/download-github/issues"
+  },
+  "homepage": "https://github.com/lencx/download-github/tree/main#readme",
+  "devDependencies": {
+    "@types/node": "^16.11.6",
+    "esno": "^0.10.1",
+    "tsup": "^5.5.0",
+    "typescript": "^4.4.4"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "node-abort-controller": "^3.0.1",
+    "node-fetch": "^3.1.0",
+    "spinnies": "^0.5.1"
+  },
+  "engines": {
+    "node": ">=12.2.0"
+  }
+}

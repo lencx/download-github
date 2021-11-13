@@ -1,2 +1,3 @@
 # download-github
-Download directory from a GitHub repo. 
+
+> Download directory from a GitHub repo.
