@@ -33,7 +33,7 @@ export class DownloadGithub extends EventEmitter {
     };
   }
 
-  urlParse(uri: string) {
+  reqOptions(uri: string) {
     const { protocol, hostname, pathname, search } = new URL(uri);
     return { protocol, hostname, path: pathname + search, headers: this.headers };
   }
@@ -43,7 +43,7 @@ export class DownloadGithub extends EventEmitter {
     const baseURL = `https://api.github.com/repos/${this.owner}/${this.repo}${ghPath}`;
 
     return new Promise((resolve, reject) => {
-      https.get(this.urlParse(baseURL), (res) => {
+      https.get(this.reqOptions(baseURL), (res) => {
         switch (res.statusCode) {
           case 401:
             reject(new Error(`GET ${res.statusCode} / Invalid Token`));
@@ -71,7 +71,7 @@ export class DownloadGithub extends EventEmitter {
   // Great for downloads with few sub directories on big repos
   // Cons: many requests if the repo has a lot of nested dirs
   async getRepo({ dir = this.dir, fullData = false }) {
-    const res: any = await this.ghFetch(`/contents/${dir}?ref=${this.ref}`);
+    const res: Record<string, any> = await this.ghFetch(`/contents/${dir}?ref=${this.ref}`);
 
     if (res.message === 'Not Found') {
       return [];
@@ -83,7 +83,7 @@ export class DownloadGithub extends EventEmitter {
     const files = [];
     const requests = [];
 
-    for (const item of res) {
+    for (const item of (res as FileItem[])) {
       if (item.type === 'file') {
         files.push(fullData ? item : item.path);
       }
@@ -102,7 +102,7 @@ export class DownloadGithub extends EventEmitter {
   // Cons: huge on huge repos + may be truncated
   async getTree({ dir = this.dir, fullData = false }) {
     const files: Array<FileItem|string> = [];
-    const res: any = await this.ghFetch(`/git/trees/${this.ref}?recursive=1`);
+    const res: Record<string, any> = await this.ghFetch(`/git/trees/${this.ref}?recursive=1`);
 
     if (res.message) {
       throw new Error(res.message);
@@ -123,7 +123,7 @@ export class DownloadGithub extends EventEmitter {
 
   // public repo
   async fetchPublicFile(file: FileItem) {
-    https.get(this.urlParse(file.url), (res) => {
+    https.get(this.reqOptions(file.url), (res) => {
       let data = '';
       res.on('data', (chunk) => (data += chunk));
       res.on('end', () => {
@@ -139,21 +139,21 @@ export class DownloadGithub extends EventEmitter {
   }
 
   // private repo
-  async fetchPrivateFile(file: any) {
+  async fetchPrivateFile(file: FileItem) {
     if (!this.token) {
       throw new Error('Private repo token is required');
     }
   }
 
   // download repo
-  async download(file: any) {
+  async download(file: FileItem) {
     this.repoIsPrivate
       ? await this.fetchPrivateFile(file)
       : await this.fetchPublicFile(file);
   }
 
   async init() {
-    const { private: repoIsPrivate }: any = await this.ghFetch() || {};
+    const { private: repoIsPrivate }: Record<string, any> = await this.ghFetch() || {};
     this.repoIsPrivate = repoIsPrivate;
 
     const files = await this.getTree({ fullData: true });

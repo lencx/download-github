@@ -8,9 +8,9 @@
   "author": "lencx <cxin1314@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "dgh": "esno src/index.ts",
+    "dgh": "esno src/cli.ts",
     "dev": "npm run build -- --watch",
-    "build": "tsup src/index.ts --dts --minify --format cjs,esm",
+    "build": "tsup src/cli.ts src/index.ts --dts --minify --format cjs,esm",
     "prepublishOnly": "npm run build",
     "release": "npx bumpp --push --tag --commit && npm publish"
   },
@@ -29,6 +29,7 @@
   "homepage": "https://github.com/lencx/download-github/tree/main#readme",
   "devDependencies": {
     "@types/fs-extra": "^9.0.13",
+    "@types/minimist": "^1.2.2",
     "@types/node": "^16.11.6",
     "esno": "^0.10.1",
     "tsup": "^5.5.0",
@@ -37,6 +38,7 @@
   "dependencies": {
     "chalk": "^4.1.2",
     "fs-extra": "^10.0.0",
+    "minimist": "^1.2.5",
     "spinnies": "^0.5.1"
   },
   "engines": {
