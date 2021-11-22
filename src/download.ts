@@ -3,9 +3,9 @@ import fs from 'fs-extra';
 import chalk from 'chalk';
 import request from 'request';
 import AdmZip from 'adm-zip';
-import { v4 } from 'uuid';
 import { EventEmitter } from 'events';
 
+import { tempDir } from './utils';
 import type { DownloadOptions } from './types';
 
 const cwd = process.cwd();
@@ -81,7 +81,7 @@ export class GithubDownloader extends EventEmitter {
   }
 
   generateTempDir(repo: string) {
-    return path.join(cwd, `${repo}-${v4()}`);
+    return path.join(cwd, tempDir(repo));
   }
 }
 

@@ -1,8 +1,8 @@
-import { spawnSync } from "child_process";
 import fs from 'fs';
-import { v4 } from 'uuid';
 import rimraf from 'rimraf';
+import { spawnSync } from "child_process";
 
+import { tempDir } from './utils';
 import type { GitCloneSparseOptions } from './types';
 
 export default function gitCloneSparse({
@@ -11,19 +11,19 @@ export default function gitCloneSparse({
   appName,
   subDir,
 }: GitCloneSparseOptions) {
-  const tempDir = `${repo}_${v4()}`;
-  const cwd = `${process.cwd()}/${tempDir}`;
+  // TODO: check repo
+  const { repoPath, repoName } = tempDir(repo, true);
   spawnSync('git', [
     'clone', '--depth 1',
     '--filter=blob:none',
     '--sparse', `https://github.com/${owner}/${repo}.git`,
-    tempDir,
+    repoName,
   ], { shell: true, stdio: 'inherit'});
   spawnSync('git', [
     'sparse-checkout',
     'set',
     subDir
-  ], { shell: true, cwd, stdio: 'inherit' });
+  ], { shell: true, cwd: repoPath, stdio: 'inherit' });
   fs.renameSync(`${tempDir}/${subDir}`, appName);
-  rimraf.sync(tempDir);
+  rimraf.sync(repoName);
 }
