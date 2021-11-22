@@ -8,6 +8,4 @@ export type GithubDownloadOptions = {
   overwrite?: (file: string) => void;
 }
 
-export type GitCloneSparseOptions = Omit<GithubDownloadOptions, 'ref'>;
-
 export type DownloadOptions = Omit<GithubDownloadOptions, 'subDir'>;

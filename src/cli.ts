@@ -4,7 +4,7 @@ import githubDownload from '.';
 
 const argv = minimist(process.argv);
 
-const { owner, repo, name, sub } = argv;
+const { owner, repo, name, sub, ref } = argv;
 
 async function init() {
   githubDownload({
@@ -12,6 +12,7 @@ async function init() {
     repo,
     appName: name,
     subDir: sub,
+    ref,
   });
 }
 
