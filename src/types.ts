@@ -1,17 +1,13 @@
-export type DownloadOptions = {
-  name: string; // app name
-  owner: string; // github username
-  repo: string; // github repo
-  dir: string; // github repo dir, support subdirectories, default `''`
-  ref: string; // github branch, default `HEAD`
-  token?: string; // github token
+
+export type GithubDownloadOptions = {
+  owner: string;
+  repo: string;
+  appName: string;
+  ref?: string;
+  subDir?: string;
+  overwrite?: (file: string) => void;
 }
 
-export type FileItem = {
-  path: string;
-  mode: string;
-  type: string;
-  sha: string;
-  size: number;
-  url: string;
-}
+export type GitCloneSparseOptions = Omit<GithubDownloadOptions, 'ref'>;
+
+export type DownloadOptions = Omit<GithubDownloadOptions, 'subDir'>;
