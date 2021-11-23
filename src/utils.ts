@@ -1,10 +1,10 @@
 import path from 'path';
 import { v4 } from 'uuid';
 
-export function tempDir(repo: string): string;
-export function tempDir(repo: string, isPath: false): Record<'repoName' | 'repoPath', string>;
-export function tempDir(repo: string, isPath = true) {
+import { TempDirReturn } from './types';
+
+export function tempDir<T extends boolean = true>(repo: string, isPath?: T): TempDirReturn<T> {
   const repoName = `${repo}_${v4().replace(/-/ig, '')}`;
   const repoPath = path.join(process.cwd(), repoName);
-  return isPath ? repoPath : { repoName, repoPath };
+  return (isPath ? repoPath : { repoName, repoPath }) as TempDirReturn<T>;
 };
