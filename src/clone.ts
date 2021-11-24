@@ -19,7 +19,7 @@ export default function gitCloneSparse({
     if (err) return console.error(err);
 
     if (resp.statusCode === 403) {
-      const { repoPath, repoName } = tempDir(repo, false);
+      const { repoPath, repoName } = tempDir(repo, true);
 
       spawnSync('git', [
         'clone', '--depth 1',
