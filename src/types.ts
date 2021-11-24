@@ -1,4 +1,3 @@
-
 export type GithubDownloadOptions = {
   owner: string;
   repo: string;
@@ -9,7 +8,3 @@ export type GithubDownloadOptions = {
 }
 
 export type DownloadOptions = Omit<GithubDownloadOptions, 'subDir'>;
-
-export type TempDirReturn<T> =
-  T extends true ? string :
-  T extends false ? Record<'repoName' | 'repoPath', string> : never;
