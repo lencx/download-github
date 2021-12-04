@@ -3,29 +3,27 @@ import fs from 'fs-extra';
 import chalk from 'chalk';
 import request from 'request';
 import AdmZip from 'adm-zip';
-import { EventEmitter } from 'events';
 
 import { tempDir } from './utils';
 import type { DownloadOptions } from './types';
 
 const cwd = process.cwd();
 
-export class GithubDownloader extends EventEmitter {
+export class GithubDownloader {
   public owner: string;
   public repo: string;
   public ref: string;
-  public appName: string;
+  public name: string;
   public overwrite: (file: string) => void;
   private initURL: string;
   private initRef: string;
   private zipURL: string;
 
-  constructor({ owner, repo, ref, appName, overwrite }: DownloadOptions) {
-    super();
+  constructor({ owner, repo, ref, name, overwrite }: DownloadOptions) {
     this.owner = owner;
     this.repo = repo;
     this.ref = ref || 'HEAD';
-    this.appName = appName;
+    this.name = name;
     this.overwrite = overwrite;
     this.initRef = this.ref ? `?ref=${this.ref}` : '';
     this.initURL = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/`;
@@ -39,9 +37,9 @@ export class GithubDownloader extends EventEmitter {
 
   requestJSON(url: string) {
     request({ url }, (err, resp) => {
-      if (err) return this.emit('error', err);
+      if (err) return console.log(chalk.red`[dgh::error]`, err);
       if (resp.statusCode === 403) return this.downloadZip();
-      if (resp.statusCode !== 200) this.emit('error', new Error(`${url}: returned ${resp.statusCode}`));
+      if (resp.statusCode !== 200) console.log(chalk.red`[dgh::error]`, `${url}: returned ${resp.statusCode}`);
     });
   }
 
@@ -50,28 +48,27 @@ export class GithubDownloader extends EventEmitter {
     const zipBaseDir = `${this.repo}-${this.ref}`;
     const zipFile = path.join(tmpdir, `${zipBaseDir}.zip`);
 
-    this.emit('info', 'url', this.zipURL);
+    console.log(chalk.gray`[dgh::info]`, chalk.blue`download-url`, chalk.yellow(this.zipURL));
 
     fs.mkdir(tmpdir, (err) => {
-      if (err) this.emit('error', err)
+      if (err) console.log(chalk.red`[dgh::error]`, err);
       request.get(this.zipURL).pipe(
         fs.createWriteStream(zipFile)).on('close', () => {
           try {
-            extractZip.call(this, this.appName, this.overwrite, zipFile, tmpdir, (extractedFolderName: string) => {
+            extractZip.call(this, this.name, this.overwrite, zipFile, tmpdir, (extractedFolderName: string) => {
               const oldPath = path.join(tmpdir, extractedFolderName);
 
-              fs.rename(oldPath, this.appName, (err) => {
-                if (err) this.emit('error', err);
+              fs.rename(oldPath, this.name, (err) => {
+                if (err) console.log(chalk.red`[dgh::error]`, err);
 
                 fs.remove(tmpdir, (err) => {
-                  if (err) this.emit('error', err);
-                  this.emit('end', `${this.owner}/${this.repo}`);
+                  if (err) console.log(chalk.red`[dgh::error]`, err);
+                  console.log(chalk.gray`[dgh::download]`, chalk.green`${this.owner}/${this.repo} ~> ${this.name}`);
                 });
               });
             })
           } catch (e) {
-            this.emit('error', fs.readFileSync(zipFile));
-            console.log(chalk.red`\n[mpl::invalid]:`, chalk.blue`https://github.com/${this.owner}/${this.repo}/tree/${this.ref}\n`);
+            console.log(chalk.red`[dgh::error]:`, chalk.gray`invalid-url`, chalk.blue`https://github.com/${this.owner}/${this.repo}/tree/${this.ref}\n`);
             fs.removeSync(tmpdir);
             process.exit(1);
           }
@@ -81,18 +78,19 @@ export class GithubDownloader extends EventEmitter {
   }
 
   generateTempDir(repo: string) {
-    return path.join(cwd, tempDir(repo));
+    const { repoName } = tempDir(repo, true);
+    return path.join(cwd, repoName);
   }
 }
 
 export default function ghDownload(options: DownloadOptions) {
-  options.appName = options.appName || process.cwd();
+  options.name = options.name || process.cwd();
   const ghdownload = new GithubDownloader(options)
   return ghdownload.start();
 }
 
 export function extractZip(
-  appName: string,
+  name: string,
   overwrite: Function,
   zipFile: string | Buffer,
   outputDir: string,
@@ -106,13 +104,13 @@ export function extractZip(
   const folderName = path.basename(entries[0].entryName);
 
   const checkDone = (err?: Error, file?: string) => {
-    if (err) this.emit('error', err);
+    if (err) console.log(chalk.red`[dgh::error]`, err);
 
     if (file) {
       // nodejs
       if (/\/package.json$/.test(file)) {
         const data = fs.readJSONSync(file);
-        data.name = appName;
+        data.name = name;
         fs.writeJSONSync(file, data, { spaces: 2 });
       }
       // overwrite file
@@ -122,7 +120,6 @@ export function extractZip(
     }
 
     pending += 1;
-    // this.emit('info', 'pending', `${pending}/${total}`);
     if (pending === total) {
       callback(folderName);
     }

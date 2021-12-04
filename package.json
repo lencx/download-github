@@ -1,12 +1,15 @@
 {
   "name": "dgh",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Download directory from a GitHub repo",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "author": "lencx <cxin1314@gmail.com>",
   "license": "MIT",
+  "bin": {
+    "dgh": "bin/dgh.js"
+  },
   "scripts": {
     "dgh": "esno src/cli.ts",
     "dev": "npm run build -- --watch",
@@ -18,7 +21,15 @@
     "bin",
     "dist"
   ],
-  "keywords": [],
+  "keywords": [
+    "dgh",
+    "cli",
+    "repo",
+    "github",
+    "download",
+    "directory",
+    "github-download"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/lencx/download-github"
@@ -46,7 +57,6 @@
     "minimist": "^1.2.5",
     "request": "^2.88.2",
     "rimraf": "^3.0.2",
-    "spinnies": "^0.5.1",
     "uuid": "^8.3.2"
   },
   "engines": {

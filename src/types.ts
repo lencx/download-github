@@ -1,10 +1,10 @@
-export type GithubDownloadOptions = {
+export type DownloadGithubOptions = {
   owner: string;
   repo: string;
-  appName: string;
+  name: string;
   ref?: string;
-  subDir?: string;
+  subdir?: string;
   overwrite?: (file: string) => void;
 }
 
-export type DownloadOptions = Omit<GithubDownloadOptions, 'subDir'>;
+export type DownloadOptions = Omit<DownloadGithubOptions, 'subDir'>;
