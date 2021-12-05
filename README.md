@@ -4,6 +4,8 @@
 
 ## Usage
 
+[![asciicast](https://asciinema.org/a/ahm2Hkp6mKtPfHyFMeZNJhwcV.svg)](https://asciinema.org/a/ahm2Hkp6mKtPfHyFMeZNJhwcV)
+
 ```bash
 npm install dgh
 ```
