@@ -46,13 +46,13 @@
     "@types/request": "^2.48.7",
     "@types/rimraf": "^3.0.2",
     "@types/uuid": "^8.3.3",
-    "esno": "^0.10.1",
-    "tsup": "^5.5.0",
-    "typescript": "^4.4.4"
+    "esno": "^0.12.1",
+    "tsup": "^5.10.1",
+    "typescript": "^4.5.2"
   },
   "dependencies": {
     "adm-zip": "^0.5.9",
-    "chalk": "^4.1.2",
+    "chalk": "^5.0.0",
     "fs-extra": "^10.0.0",
     "minimist": "^1.2.5",
     "request": "^2.88.2",
