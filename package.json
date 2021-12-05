@@ -1,6 +1,6 @@
 {
   "name": "dgh",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Download directory from a GitHub repo",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -57,6 +57,7 @@
     "minimist": "^1.2.5",
     "request": "^2.88.2",
     "rimraf": "^3.0.2",
+    "spinnies": "^0.5.1",
     "uuid": "^8.3.2"
   },
   "engines": {

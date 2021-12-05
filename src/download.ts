@@ -3,39 +3,48 @@ import fs from 'fs-extra';
 import chalk from 'chalk';
 import request from 'request';
 import AdmZip from 'adm-zip';
+import Spinnies from 'spinnies'
+import { EventEmitter } from 'events';
 
-import { tempDir } from './utils';
+import { tempDir, getFiles } from './utils';
 import type { DownloadOptions } from './types';
 
 const cwd = process.cwd();
+const spinners = new Spinnies();
 
-export class GithubDownloader {
+export default class GithubDownloader extends EventEmitter {
   public owner: string;
   public repo: string;
   public ref: string;
   public name: string;
-  public overwrite: (file: string) => void;
+  public root: string;
+  public overwrite: boolean;
   private initURL: string;
   private initRef: string;
   private zipURL: string;
 
-  constructor({ owner, repo, ref, name, overwrite }: DownloadOptions) {
+  constructor({ owner, repo, ref = 'HEAD', name, overwrite = true, root }: DownloadOptions) {
+    super();
     this.owner = owner;
     this.repo = repo;
-    this.ref = ref || 'HEAD';
     this.name = name;
+    this.ref = ref;
+    this.root = root;
     this.overwrite = overwrite;
     this.initRef = this.ref ? `?ref=${this.ref}` : '';
     this.initURL = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/`;
     this.zipURL = `https://nodeload.github.com/${this.owner}/${this.repo}/zip/${this.ref}`;
   }
 
-  start() {
-    this.requestJSON(this.initURL + this.initRef);
+  init() {
+    const _url = this.initURL + this.initRef;
+    this.emit('info', chalk.gray`[dgh:info] query-url` + chalk.yellow(_url));
+    this.requestJSON(_url);
     return this;
   }
 
   requestJSON(url: string) {
+    spinners.add('loading', { text: 'download...' });
     request({ url }, (err, resp) => {
       if (err) return console.log(chalk.red`[dgh::error]`, err);
       if (resp.statusCode === 403) return this.downloadZip();
@@ -48,28 +57,40 @@ export class GithubDownloader {
     const zipBaseDir = `${this.repo}-${this.ref}`;
     const zipFile = path.join(tmpdir, `${zipBaseDir}.zip`);
 
-    console.log(chalk.gray`[dgh::info]`, chalk.blue`download-url`, chalk.yellow(this.zipURL));
+    this.emit('info', chalk.gray`[dgh:info] download-url` + chalk.yellow(this.zipURL));
 
     fs.mkdir(tmpdir, (err) => {
       if (err) console.log(chalk.red`[dgh::error]`, err);
       request.get(this.zipURL).pipe(
         fs.createWriteStream(zipFile)).on('close', () => {
           try {
-            extractZip.call(this, this.name, this.overwrite, zipFile, tmpdir, (extractedFolderName: string) => {
+            extractZip.call(this, this.name, zipFile, tmpdir, (extractedFolderName: string) => {
               const oldPath = path.join(tmpdir, extractedFolderName);
+              const newPath = path.join(this.root, this.name);
 
-              fs.rename(oldPath, this.name, (err) => {
+              fs.rename(oldPath, newPath, (err) => {
                 if (err) console.log(chalk.red`[dgh::error]`, err);
 
-                fs.remove(tmpdir, (err) => {
+                fs.remove(tmpdir, async (err) => {
                   if (err) console.log(chalk.red`[dgh::error]`, err);
-                  console.log(chalk.gray`[dgh::download]`, chalk.green`${this.owner}/${this.repo} ~> ${this.name}`);
+                  const _ref = this.ref ? `:${this.ref}` : '';
+                  console.log(chalk.gray`[dgh::download]`, chalk.blue`${this.owner}/${this.repo}${_ref}`, chalk.green`${newPath}`);
+
+                  // overwrite file
+                  if (this.overwrite) {
+                    const files = await getFiles(newPath);
+                    this.emit('overwrite', files, fs);
+                  }
+
+                  this.emit('end');
+
+                  spinners.succeed('loading', { text: '🎉 Done' });
                 });
               });
             })
           } catch (e) {
-            console.log(chalk.red`[dgh::error]:`, chalk.gray`invalid-url`, chalk.blue`https://github.com/${this.owner}/${this.repo}/tree/${this.ref}\n`);
             fs.removeSync(tmpdir);
+            spinners.fail('loading', { text: 'oops! something went wrong' });
             process.exit(1);
           }
         }
@@ -83,15 +104,8 @@ export class GithubDownloader {
   }
 }
 
-export default function ghDownload(options: DownloadOptions) {
-  options.name = options.name || process.cwd();
-  const ghdownload = new GithubDownloader(options)
-  return ghdownload.start();
-}
-
 export function extractZip(
   name: string,
-  overwrite: Function,
   zipFile: string | Buffer,
   outputDir: string,
   callback: (dirName: string) => void,
@@ -112,10 +126,6 @@ export function extractZip(
         const data = fs.readJSONSync(file);
         data.name = name;
         fs.writeJSONSync(file, data, { spaces: 2 });
-      }
-      // overwrite file
-      if (overwrite) {
-        overwrite(file);
       }
     }
 
