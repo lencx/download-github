@@ -82,9 +82,9 @@ export default class GithubDownloader extends EventEmitter {
                     this.emit('overwrite', files, fs);
                   }
 
-                  this.emit('end');
-
                   spinners.succeed('loading', { text: '🎉 Done' });
+
+                  this.emit('end');
                 });
               });
             })

@@ -1,6 +1,6 @@
 {
   "name": "dgh",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Download directory from a GitHub repo",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
